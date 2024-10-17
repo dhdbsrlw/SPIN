@@ -63,6 +63,7 @@ def get_tokenizer(model_args: ModelArguments, data_args: DataArguments) -> PreTr
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.model_name_or_path,
         revision=model_args.model_revision,
+        cache_dir="/ssd0/checkpoints", # modify
     )
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token_id = tokenizer.eos_token_id
@@ -80,6 +81,37 @@ def get_tokenizer(model_args: ModelArguments, data_args: DataArguments) -> PreTr
         tokenizer.chat_template = DEFAULT_CHAT_TEMPLATE
 
     return tokenizer
+
+
+def get_tokenizer_seed_llama(data_args: DataArguments) -> PreTrainedTokenizer:
+    """Get the tokenizer for the model."""
+
+    tokenizer = SeedLlamaTokenizer.from_pretrained(
+                        pretrained_model_name_or_path='AILab-CVC/seed-tokenizer-2',
+                        vit_precision='fp16',
+                        diffusion_precision='fp16',
+                        load_diffusion=False,
+                        device='cpu',
+                        encoder_url='https://huggingface.co/AILab-CVC/seed-tokenizer-2/resolve/main/seed_quantizer.pt',
+                        diffusion_path='stabilityai/stable-diffusion-2-1-unclip'
+                        ) 
+
+    tokenizer.pad_token_id = tokenizer.eos_token_id
+
+    if data_args.truncation_side is not None:
+        tokenizer.truncation_side = data_args.truncation_side
+
+    # Set reasonable default for models without max length
+    # if tokenizer.model_max_length > 100_000:
+        # tokenizer.model_max_length = 8192
+
+    if data_args.chat_template is not None:
+        tokenizer.chat_template = data_args.chat_template
+    elif tokenizer.chat_template is None:
+        tokenizer.chat_template = DEFAULT_CHAT_TEMPLATE
+
+    return tokenizer
+
 
 
 def get_peft_config(model_args: ModelArguments) -> PeftConfig | None:

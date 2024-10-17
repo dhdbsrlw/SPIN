@@ -19,6 +19,7 @@ from alignment import (
     get_peft_config,
     get_quantization_config,
     get_tokenizer,
+    get_toeknizer_seed_llama,
     is_adapter_model,
 )
 from peft import PeftConfig, PeftModel
@@ -102,7 +103,7 @@ def main():
     # Load tokenizer and process datasets
     #####################################
     data_args.truncation_side = "left"  # Truncate from left to ensure we don't lose labels in final turn
-    tokenizer = get_tokenizer(model_args, data_args)
+    tokenizer = get_toeknizer_seed_llama(data_args)
 
     #####################
     # Apply chat template
@@ -127,14 +128,14 @@ def main():
     quantization_config = get_quantization_config(model_args)
 
     model_kwargs = dict(
-        revision=model_args.model_revision,
+        revision=model_args.model_revision, # TODO: 삭제 예정
         trust_remote_code=model_args.trust_remote_code,
         use_flash_attention_2=model_args.use_flash_attention_2,
         torch_dtype=torch_dtype,
         use_cache=False if training_args.gradient_checkpointing else True,
         device_map=get_kbit_device_map() if quantization_config is not None else None,
         quantization_config=quantization_config,
-        cache_dir="/ssd0/checkpoints", # modify 
+        cache_dir="/ssd0/checkpoints", # TODO: modify 
     )
 
     model = model_args.model_name_or_path

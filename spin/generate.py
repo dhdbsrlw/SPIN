@@ -21,13 +21,14 @@ accelerator = Accelerator(kwargs_handlers=[kwargs])
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='UCLA-AGI/zephyr-7b-sft-full-SPIN-iter0')
+    parser.add_argument('--model', type=str, default='alignment-handbook/zephyr-7b-sft-full') # default='UCLA-AGI/zephyr-7b-sft-full-SPIN-iter0') # modify
     parser.add_argument('--data_frac', type=int, default=0)
     parser.add_argument('--frac_len', type=int, default=0)
-    parser.add_argument('--output_dir', type=str, default='generated/iter1')
+    parser.add_argument('--output_dir', type=str, default='data/generated/iter0')
     parser.add_argument('--batch_size', type=int, default=16)
-    parser.add_argument('--input_dir', type=str, default='UCLA-AGI/SPIN_iter0')
+    parser.add_argument('--input_dir', type=str,default='data/reformatted') # default='UCLA-AGI/SPIN_iter0') # modify
     parser.add_argument('--split', type=str, default='train')
+    parser.add_argument('--cache_dir', type=str, default='/ssd0/checkpoints') # modify (add)
     return parser.parse_args()
 
 def prepare_prompts(prompts, tokenizer, batch_size=4):
@@ -61,8 +62,10 @@ def main():
         model_path,    
         device_map={"": accelerator.process_index},
         torch_dtype=torch.bfloat16,
+        cache_dir=args.cache_dir # modify (add)
     )
-    tokenizer = AutoTokenizer.from_pretrained(model_path)   
+    tokenizer = AutoTokenizer.from_pretrained(model_path,
+                                              cache_dir=args.cache_dir) # modify (add)
     tokenizer.pad_token = tokenizer.eos_token
 
     # load data

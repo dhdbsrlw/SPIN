@@ -1,3 +1,5 @@
+# 수정 부분 modify 표기
+
 from datasets import load_dataset
 import argparse
 import json
@@ -10,24 +12,28 @@ import random
 
 def setup_arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output_dir', type=str, default='reformatted')
+    parser.add_argument('--output_dir', type=str, default='data/reformatted')
     parser.add_argument('--data', type=str, default='HuggingFaceH4/ultrachat_200k')
+    parser.add_argument('--train_size', type=int) # modify
     return parser.parse_args()
 
 
-def load_and_process_data_ultrachat(dataset_name, split):
+def load_and_process_data_ultrachat(dataset_name, split, train_size: int=50000): # modify
     try:
         dataset = load_dataset(dataset_name, split=split)
         reformatted_data = [{
             'generated': [message['messages'][0], {"role": "assistant", "content": ""}], 
             'real': [message['messages'][0], message['messages'][1]]
         } for message in dataset]
+        # modify
+        if "train" in split: 
+            reformatted_data = reformatted_data[:train_size]
         return reformatted_data
     except Exception as e:
         logging.error(f"Error loading or processing dataset: {e}")
         return []
 
-def load_and_process_data_tulu(dataset_name, input_split, test_split: float=0.1):
+def load_and_process_data_tulu(dataset_name, input_split, test_split: float=0.1): 
     try:
         dataset = load_dataset(dataset_name, split=input_split)
         dataset = dataset.train_test_split(test_size=test_split)
@@ -39,7 +45,7 @@ def load_and_process_data_tulu(dataset_name, input_split, test_split: float=0.1)
             'generated': [message['messages'][0], {"role": "assistant", "content": ""}], 
             'real': [message['messages'][0], message['messages'][1]]
         } for message in dataset["test"]]
-        return reformatted_train_data, reformatted_test_data
+        return reformatted_train_data, reformatted_test_data 
     except Exception as e:
         logging.error(f"Error loading or processing dataset: {e}")
         return []
@@ -63,8 +69,8 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if args.data == 'HuggingFaceH4/ultrachat_200k':
-        train_data = load_and_process_data_ultrachat(args.data, 'train_sft')
-        test_data = load_and_process_data_ultrachat(args.data, 'test_sft')
+        train_data = load_and_process_data_ultrachat(args.data, 'train_sft', train_size=args.train_size) # modify
+        test_data = load_and_process_data_ultrachat(args.data, 'test_sft') 
     elif "tulu-v2-sft-mixture" in args.data:
         train_data, test_data = load_and_process_data_tulu(args.data, 'train', test_split=0.1)
     else:
