@@ -35,12 +35,12 @@ def get_current_device() -> int:
     return Accelerator().local_process_index if torch.cuda.is_available() else "cpu"
 
 
-def get_kbit_device_map() -> Dict[str, int] | None:
+def get_kbit_device_map(): # -> Dict[str, int] | None:
     """Useful for running inference with quantized models by setting `device_map=get_peft_device_map()`"""
     return {"": get_current_device()} if torch.cuda.is_available() else None
 
 
-def get_quantization_config(model_args) -> BitsAndBytesConfig | None:
+def get_quantization_config(model_args): # -> BitsAndBytesConfig | None:
     if model_args.load_in_4bit:
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
@@ -114,7 +114,7 @@ def get_tokenizer_seed_llama(data_args: DataArguments) -> PreTrainedTokenizer:
 
 
 
-def get_peft_config(model_args: ModelArguments) -> PeftConfig | None:
+def get_peft_config(model_args: ModelArguments): # -> PeftConfig | None:
     if model_args.use_peft is False:
         return None
 
