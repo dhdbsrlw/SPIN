@@ -7,9 +7,9 @@ random.seed(42)
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--num_fracs', type=int, default=11)
-parser.add_argument('--input_dir', type=str, default='generated/iter0_vllm_ddp')
-parser.add_argument('--output_dir', type=str, default='data/synthetic/iter0')
+parser.add_argument('--num_fracs', type=int, default=11) # 고정 (생성 스크립트의 'frac' 수를 바꾸지 않은 이상 '고정')
+parser.add_argument('--input_dir', type=str, default='data/generated/iter1_vllm_ddp')
+parser.add_argument('--output_dir', type=str, default='data/synthetic/iter1')
 
 args = parser.parse_args()
 num_fracs = args.num_fracs

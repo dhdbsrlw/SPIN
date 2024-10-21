@@ -9,13 +9,71 @@ import logging
 import os
 import random
 
+from seed_llama_utils import load_data, load_data_from_tar
+from tqdm import tqdm
+
 
 def setup_arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output_dir', type=str, default='data/reformatted')
-    parser.add_argument('--data', type=str, default='HuggingFaceH4/ultrachat_200k')
+    parser.add_argument('--output_dir', type=str, default='data_seed_llama/reformatted')
+    parser.add_argument('--data', type=str, default='/data/preference_data/seed_tokenized/dense_fusion_4v_100k_w_gen_seed_llama_sft_8b')
     parser.add_argument('--train_size', type=int) # modify
     return parser.parse_args()
+
+
+def seed_image_tokenize(image_token_ids: list) -> str:
+    BOI_TOKEN = '<img>'
+    EOI_TOKEN = '</img>'
+    IMG_TOKEN = '<img_{:05d}>'
+    
+    image_tokens = BOI_TOKEN + ''.join([IMG_TOKEN.format(int(item)) for item in image_token_ids]) + EOI_TOKEN
+    return image_tokens
+
+
+
+# modify (add)
+def load_and_process_data_densefusion(dataset_dir, split): 
+    # complete dataset dir
+    dataset = []
+    reformatted_dataset = []
+    dataset_dir = os.path.join(dataset_dir, split)
+    
+    # load and process
+    try:
+        df = load_data(dataset_dir) # return as List
+        for data_file in df:
+            dataset.extend(load_data_from_tar(data_file))
+
+        for message in tqdm(dataset):
+            caption = message["text"]
+            real = message["real_image_ids"]
+
+            reformatted_dataset.append({
+                "generated": [
+                    {"role": "user",
+                    "content": caption},  # same
+                    {"role": "assistant",
+                    "content": ""} # fix
+                ],
+                "real": [
+                    {"role": "user",
+                    "content": caption}, # same
+                    {"role": "assistant",
+                    "content": seed_image_tokenize(real)} 
+                ]
+                })
+            
+        # reformatted_data = [{
+        #     'generated': [message['messages'][0], {"role": "assistant", "content": ""}], 
+        #     'real': [message['messages'][0], message['messages'][1]]
+        # } for message in dataset]
+
+        return reformatted_dataset
+    
+    except Exception as e:
+        logging.error(f"Error loading or processing dataset: {e}")
+        # raise ValueError
+        return []
 
 
 def load_and_process_data_ultrachat(dataset_name, split, train_size: int=50000): # modify
@@ -73,6 +131,9 @@ def main():
         test_data = load_and_process_data_ultrachat(args.data, 'test_sft') 
     elif "tulu-v2-sft-mixture" in args.data:
         train_data, test_data = load_and_process_data_tulu(args.data, 'train', test_split=0.1)
+    elif "dense_fusion" in args.data:
+        train_data = load_and_process_data_densefusion(args.data, 'train') # args.data is 'base dataset dir'
+        test_data = load_and_process_data_densefusion(args.data, 'val') 
     else:
         raise ValueError(f"current {args.data} dataset is not supported")
 

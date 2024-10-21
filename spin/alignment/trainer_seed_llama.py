@@ -1,5 +1,7 @@
 # Adapted from https://github.com/huggingface/alignment-handbook 
 
+from mDPO.seed_llama.SEED.MultiModalLLM.src.model.llama_xformer import LlamaForCausalLM # modify
+
 import inspect
 import warnings
 from collections import defaultdict
@@ -158,14 +160,17 @@ class SPINTrainer(Trainer):
                 "You passed a model_id to the SPINTrainer. This will automatically create an "
                 "`AutoModelForCausalLM` or a `PeftModel` (if you passed a `peft_config`) for you."
             )
-            model = AutoModelForCausalLM.from_pretrained(model, **model_init_kwargs)
+            # model = AutoModelForCausalLM.from_pretrained(model, **model_init_kwargs)
+            model = LlamaForCausalLM.from_pretrained(model, **model_init_kwargs) # modify
 
         if isinstance(ref_model, str):
             warnings.warn(
                 "You passed a ref model_id to the SPINTrainer. This will automatically create an "
                 "`AutoModelForCausalLM`"
             )
-            ref_model = AutoModelForCausalLM.from_pretrained(ref_model, **ref_model_init_kwargs)
+            # ref_model = AutoModelForCausalLM.from_pretrained(ref_model, **ref_model_init_kwargs)
+            ref_model = LlamaForCausalLM.from_pretrained(ref_model, **ref_model_init_kwargs) # modify
+
 
         if not is_peft_available() and peft_config is not None:
             raise ValueError(
@@ -767,3 +772,4 @@ class SPINTrainer(Trainer):
             logs[key] = torch.tensor(metrics).mean().item()
         del self._stored_metrics[train_eval]
         return super().log(logs)
+
