@@ -5,11 +5,10 @@ import logging
 import sys
 import os
 
+sys.path.append("/home/yjoh/project/")
+
 from mDPO.seed_llama.SEED.models.seed_llama_tokenizer import SeedLlamaTokenizer # modify
 from mDPO.seed_llama.SEED.MultiModalLLM.src.model.llama_xformer import LlamaForCausalLM # modify
-
-import pyrootutils
-pyrootutils.setup_root(__file__, indicator=".spin-root", pythonpath=True, cwd=True)
 
 import torch
 import transformers
@@ -30,7 +29,7 @@ from alignment import (
     is_adapter_model,
 )
 from peft import PeftConfig, PeftModel
-from alignment import SPINTrainer
+from alignment.trainer_seed_llama import SPINTrainer # modify
 from torch.utils.data import Subset
 import re
 
@@ -337,11 +336,21 @@ def main():
         spin_trainer.model.config.use_cache = True
         spin_trainer.model.config.save_pretrained(training_args.output_dir)
 
+        # modify (add) - merge lora weight
+        spin_trainer.model.eval()
+        merged_model = spin_trainer.model.merge_and_unload()  
+        merged_model._hf_peft_config_loaded = False
+        save_path = os.path.join(training_args.output_dir, "lora-merged")
+        if not os.path.exists(save_path):
+            os.makedirs(save_path, exist_ok=True)
+        merged_model.save_pretrained(save_path)
+
     # Ensure we don't timeout on model save / push to Hub
     logger.info("*** Waiting for all processes to finish ***")
     accelerator.wait_for_everyone()
 
     logger.info("*** Run complete! ***")
+
 
 
 if __name__ == "__main__":

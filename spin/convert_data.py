@@ -7,9 +7,10 @@ random.seed(42)
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--num_fracs', type=int, default=11) # 고정 (생성 스크립트의 'frac' 수를 바꾸지 않은 이상 '고정')
-parser.add_argument('--input_dir', type=str, default='data/generated/iter1_vllm_ddp')
-parser.add_argument('--output_dir', type=str, default='data/synthetic/iter1')
+# 오피셜(5k): 11 / 씨드라마(8k): 10
+parser.add_argument('--num_fracs', type=int, default=10) # 고정 (생성 스크립트의 'frac' 수를 바꾸지 않은 이상 '고정')
+parser.add_argument('--input_dir', type=str, default='data_seed_llama/generated/iter1_vllm')
+parser.add_argument('--output_dir', type=str, default='data_seed_llama/synthetic/iter1')
 
 args = parser.parse_args()
 num_fracs = args.num_fracs

@@ -2,7 +2,6 @@ from transformers import LlamaForCausalLM, LlamaTokenizer
 from peft import PeftModel, PeftConfig
 
 HUGGINGFACE_USERNAME="dhdbsrlw"
-# huggingface-cli login --token "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"
 
 # Load the base model
 base_model_path = "/data/checkpoints/t2i_dpo/spin/1019_spin_seed_llama_hf/checkpoint-3750"  # Path to the folder with base model

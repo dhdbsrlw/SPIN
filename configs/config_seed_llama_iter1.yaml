@@ -1,0 +1,47 @@
+# Model arguments
+# model_name_or_path: alignment-handbook/zephyr-7b-sft-full
+# model_revision: ac6e600eefcce74f5e8bae1035d4f66019e93190
+model_name_or_path: '/data/checkpoints/t2i_dpo/spin/1019_spin_seed_llama_hf/lora-merged'
+# UCLA-AGI/zephyr-7b-sft-full-SPIN-iter0 # Change this to outputs/iter0-ckpt if trained by finetune.sh
+
+# Data training arguments
+dataset_mixer:
+  #HuggingFaceH4/ultrafeedback_binarized: 1.0
+  data_seed_llama/synthetic/iter0: 1.0 # modify
+  data_seed_llama/synthetic/iter1: 1.0 # modify
+dataset_splits:
+- train
+- test
+preprocessing_num_workers: 8
+
+# Trainer arguments
+bf16: true
+beta: 0.1
+do_eval: false
+evaluation_strategy: "no"
+eval_steps: 100
+gradient_accumulation_steps: 2 # modify
+gradient_checkpointing: true
+learning_rate: 5.0e-7
+log_level: info
+logging_steps: 10
+lr_scheduler_type: linear
+max_length: 1024
+max_prompt_length: 950
+num_train_epochs: 3 # not-use (modify in script)
+optim: rmsprop
+output_dir: outputs # not-use (modify in script)
+per_device_train_batch_size: 8 # modify (agilab2 OOM issue)
+per_device_eval_batch_size: 4
+push_to_hub: false
+save_strategy: "epoch"
+save_total_limit: null
+seed: 42
+warmup_ratio: 0.1
+report_to: wandb
+run_name: spin_seed_llama_iter1_bsz_64_lora_r_64_a_128_lr_5e7
+use_peft: true
+lora_r: 64  
+lora_alpha: 128 
+lora_target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"] 
+
