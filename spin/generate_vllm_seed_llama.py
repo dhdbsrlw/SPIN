@@ -1,3 +1,5 @@
+# Use generate_vllm.sh
+# 'iter' 가 바뀜에 따라 TODO 라인 수정
 
 # Dense-Caption 80K Dataset (T2I)
 import sys
@@ -30,13 +32,13 @@ warnings.filterwarnings("ignore")
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='/data/checkpoints/t2i_dpo/spin/1019_spin_seed_llama_hf/lora-merged') # iter0-model
+    parser.add_argument('--model', type=str, default='/data/checkpoints/t2i_dpo/spin/seed_llama_hf/iter1-ckpt/lora-merged') # TODO
     parser.add_argument('--data_frac', type=int, default=0)
     parser.add_argument('--frac_len', type=int, default=0)
-    parser.add_argument('--output_dir', type=str, default='data_seed_llama/generated/iter1_vllm')
-    parser.add_argument('--world_size', type=int, default=1) # TODO
-    parser.add_argument('--input_dir', type=str, default='data_seed_llama/reformatted')
-    parser.add_argument('--split', type=str, default='train') # TODO: generated one more for 'test; split
+    parser.add_argument('--output_dir', type=str, default='data_seed_llama/generated/iter2_vllm') # TODO
+    parser.add_argument('--world_size', type=int, default=1) 
+    parser.add_argument('--input_dir', type=str, default='data_seed_llama/reformatted') # do not need to care
+    parser.add_argument('--split', type=str, default='train') 
     parser.add_argument('--cache_dir', type=str, default='/data/checkpoints/hf_cache_yj') 
     return parser.parse_args()
 
@@ -139,7 +141,8 @@ def main():
 
     prompts_all = [system_message + "USER: " + data[idx][0]['content'] + " " + instruction + "\nASSISTANT: " for idx in range(len(data))]
     # prompts_all = ["### Instruction: " + data[idx][0]['content'] + "\n\n### Response: " for idx in range(len(data))]
-    prompts_old = [data[idx][0]['content'] for idx in range(len(data))]
+    prompts_old = [data[idx][0]['content'] + " " + instruction for idx in range(len(data))]
+    # prompts_old = [data[idx][0]['content'] for idx in range(len(data))]
     corrects_all = [data[idx][1]['content'] for idx in range(len(data))]
 
     start=time.time()
@@ -156,21 +159,26 @@ def main():
 
     # collecting data 
     failed = 0
-    for idx in range(len(corrects_all)):
-        generated_token = process_img_token(results[idx]) 
-        if generated_token is None:
-            generated_token = ""
-            failed += 1
-        # print("\n\n*** debug 2 ", generated_token)
-        d = {"real": [{"role": "user", "content": prompts_old[idx]}, {"role": "assistant", "content": corrects_all[idx]}], "generated": [{"role": "user", "content": prompts_old[idx]}, {"role": "assistant", "content": generated_token}]}
-        # d = {"real": [{"role": "user", "content": prompts_old[idx]}, {"role": "assistant", "content": corrects_all[idx]}], "generated": [{"role": "user", "content": prompts_old[idx]}, {"role": "assistant", "content": results[idx]}]}
-        if args.split == 'test':
-            filename = f"{args.output_dir}/loser_{data_frac}_test.jsonl" 
-        else:
-            filename = f"{args.output_dir}/loser_{data_frac}.jsonl" 
-        with open(filename, 'a') as f:
-            json.dump(d, f)
-            f.write('\n')
+    fail_log = f"{args.output_dir}/fail_log_{data_frac}.jsonl"
+    with open(fail_log, 'a') as log_file:
+        for idx in range(len(corrects_all)):
+            generated_token = process_img_token(results[idx]) 
+            if generated_token is None:
+                generated_token = ""
+                failed += 1
+                # Log the failure to a separate JSONL file
+                json.dump({"failed_case": idx, "prompt": prompts_old[idx]}, log_file)
+                log_file.write('\n')
+            d = {"real": [{"role": "user", "content": prompts_old[idx]}, {"role": "assistant", "content": corrects_all[idx]}], "generated": [{"role": "user", "content": prompts_old[idx]}, {"role": "assistant", "content": generated_token}]}
+            # d = {"real": [{"role": "user", "content": prompts_old[idx]}, {"role": "assistant", "content": corrects_all[idx]}], "generated": [{"role": "user", "content": prompts_old[idx]}, {"role": "assistant", "content": results[idx]}]}
+            if args.split == 'test':
+                filename = f"{args.output_dir}/loser_{data_frac}_test.jsonl" 
+            else:
+                filename = f"{args.output_dir}/loser_{data_frac}.jsonl" 
+            with open(filename, 'a') as f:
+                json.dump(d, f)
+                f.write('\n')
+
     print(f"\n\n*** Total failed case in generation: {failed} / out of {len(corrects_all)} ***")
 
 
