@@ -165,3 +165,6 @@ wandb/
 reformatted/
 data/
 outputs/
+
+data_seed_llama/
+configs/

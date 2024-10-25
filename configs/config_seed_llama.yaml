@@ -4,31 +4,30 @@ model_name_or_path: /home/yjoh/project/mDPO/seed_llama/pretrained/seed_llama_8b_
 
 # Data training arguments
 dataset_mixer:
-  data_seed_llama/synthetic/iter0: 1.0 # 80k
+  data_seed_llama/synthetic_imp_1/iter0: 1.0 # 80k
 dataset_splits:
 - train
 - test
-preprocessing_num_workers: 8
+preprocessing_num_workers: 4
 
-# Trainer arguments (Global Batch Size 64)
+# Trainer arguments (Global Batch Size 32)
 bf16: true
 beta: 0.1
 do_eval: false # true 
 evaluation_strategy: "no" # "steps" 
 eval_steps: 500 # 100, modify (10%)
-gradient_accumulation_steps: 2
+gradient_accumulation_steps: 4
 gradient_checkpointing: true
-hub_model_id: seed-llama-8b-spin # zephyr-7b-spin, modify
 learning_rate: 5.0e-7
 log_level: info
 logging_steps: 10
 lr_scheduler_type: linear
-max_length: 1024 # modify
-max_prompt_length: 950 # modify
+max_length: 2048 # 1024 
+max_prompt_length: 2000 # 950 
 num_train_epochs: 3
 optim: rmsprop
-output_dir: /ssd0/checkpoints/seed_llama_dpo/1019_spin_seed_llama_hf # /ssd0/checkpoints/seed_llama_dpo/spin_reproduce_zephyr/iter0
-per_device_train_batch_size: 16
+output_dir: # /ssd0/checkpoints/seed_llama_dpo/spin_reproduce_zephyr/iter0
+per_device_train_batch_size: 4
 per_device_eval_batch_size: 1
 push_to_hub: false
 save_strategy: "epoch"
@@ -36,9 +35,8 @@ save_total_limit: null
 seed: 42
 warmup_ratio: 0.1
 report_to: wandb # modify (add)
-run_name: spin_seed_llama_bsz_64_lora_r_64_a_128_lr_5e7
-# use_lora: true
+run_name: spin_v2_seed_llama_bsz_32_lora_r_64_a_128_lr_5e7
 use_peft: true
 lora_r: 64  
 lora_alpha: 128 
-lora_target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"] # 수정 파트 4
+lora_target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"] 
