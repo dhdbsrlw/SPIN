@@ -1,5 +1,5 @@
 # Model arguments
-model_name_or_path: /home/yjoh/project/mDPO/seed_llama/pretrained/seed_llama_8b_sft
+model_name_or_path: /home/yjoh/project/mDPO/seed_llama/SEED/pretrained/seed_llama_8b_sft
 # AILab-CVC/seed-llama-8b-sft # alignment-handbook/zephyr-7b-sft-full" # modify
 
 # Data training arguments

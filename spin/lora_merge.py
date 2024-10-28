@@ -5,7 +5,7 @@ from peft import PeftModel, PeftConfig
 HUGGINGFACE_USERNAME="dhdbsrlw"
 
 # Load the base model
-base_model_path = "/data/checkpoints/t2i_dpo/spin/seed_llama_hf/iter1-ckpt"  # Path to the folder with base model
+base_model_path = "/data/checkpoints/t2i_dpo/spin/seed_llama_hf/iter2-ckpt/checkpoint-7500"  # Path to the folder with base model
 model = LlamaForCausalLM.from_pretrained(base_model_path)
 
 # Load tokenizer
@@ -27,7 +27,7 @@ model._hf_peft_config_loaded = False
 
 
 # Save the merged model
-save_path = os.path.join(base_model_path, "lora-merged") # "/data/checkpoints/t2i_dpo/spin/1019_spin_seed_llama_hf/lora-merged"
+save_path = os.path.join("/data/checkpoints/t2i_dpo/spin/seed_llama_hf/iter2-ckpt", "lora-merged") # "/data/checkpoints/t2i_dpo/spin/1019_spin_seed_llama_hf/lora-merged"
 model.save_pretrained(save_path)
 # tokenizer.save_pretrained(save_path)
 
